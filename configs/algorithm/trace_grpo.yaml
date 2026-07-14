@@ -1,0 +1,53 @@
+# TRACE-GRPO algorithm config block (drop into hydra `algorithm:` namespace).
+#
+# Use as:
+#   python -m verl.trainer.main_ppo \
+#     algorithm=trace_grpo \
+#     algorithm.trace_grpo.teacher_kind=llm \
+#     ...
+adv_estimator: trace_l3_mask
+gamma: 1.0
+lam: 1.0
+norm_adv_by_std_in_grpo: true
+use_kl_in_reward: false
+kl_penalty: low_var_kl
+
+# --- TRACE-GRPO three-level coefficients ---
+trace_grpo:
+  # Aggregator that turns per-turn judgments into per-sample q.
+  # "sum" matches the spec's group_q_sum semantics; "sign_sum" reduces to {-1,0,+1}.
+  per_sample_q_aggregator: sum
+
+  # L1 sample gate / fallback
+  text_feedback_alpha: 0.5           # α
+  text_feedback_sigma_eps: 1.0e-3    # zero-variance threshold
+
+  # L2 turn modulation
+  text_feedback_lambda: 0.2          # λ
+
+  # L3 token modulation (CAPA-driven)
+  trace_l3_enable: true
+  trace_l3_alpha: 0.3              # α₃
+  trace_l3_kappa: 1.0              # κ
+  trace_l3_negative_only: true     # clamp w³ ≤ 1 — only suppress, don't boost
+
+  # Teacher selection: "env_score" | "llm" | "counterfactual"
+  teacher_kind: env_score
+
+  # LLM judge (only honored when teacher_kind == "llm").
+  # Set TEXT_FEEDBACK_BASE_URL, TEXT_FEEDBACK_MODEL and TEXT_FEEDBACK_API_KEY
+  # via environment variables to point at your own OpenAI-compatible endpoint.
+  llm:
+    base_url: ""    # e.g. "https://your-endpoint.example.com/v1/chat/completions"
+    model: ""       # e.g. "your-judge-model-name"
+    api_key: ""     # bearer token; leave "" if the endpoint is unauthenticated
+    max_workers: 32
+    max_retries: 3
+    timeout_s: 120.0
+    max_judge_tokens: 256
+    temperature: 0.0
+    schema_version: v3
+
+# --- DAPO/filter group knob (we don't use it but verl reads the field) ---
+filter_groups:
+  enable: false

@@ -1,0 +1,4 @@
+- name: trace_sciworld
+  _target_: trace_grpo.agent_loops.sciworld_agent_loop.ScienceWorldAgentLoop
+- name: trace_alfworld
+  _target_: trace_grpo.agent_loops.alfworld_agent_loop.AlfWorldAgentLoop

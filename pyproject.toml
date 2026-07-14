@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trace-grpo"
+version = "0.1.0"
+description = "Trace-Aware Credit-assignment Grpo — three-level advantage modulation + Critique-Aware Paged Attention on top of verl."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Anonymous Authors" }]
+license = { text = "Apache-2.0" }
+dependencies = [
+  "torch>=2.5",
+  "numpy",
+  "transformers>=4.51",
+  "tensordict",
+  "hydra-core",
+  "omegaconf",
+  "httpx",
+  "ray",
+]
+
+[project.optional-dependencies]
+sciworld = ["scienceworld>=1.2.3"]
+flashattn = ["flash-attn>=2.7"]
+test = ["pytest", "pytest-asyncio"]
+
+[tool.setuptools]
+packages = [
+  "trace_grpo",
+  "trace_grpo.agent_loops",
+  "trace_grpo.launchers",
+  "trace_grpo.patches",
+  "trace_grpo.self_supervised",
+  "trace_grpo.workers",
+  "trace_grpo.workers.reward_manager",
+  "trace_grpo.workers.reward_manager.text_feedback",
+]
+
+[tool.setuptools.package-dir]
+trace_grpo = "."
+"trace_grpo.agent_loops" = "agent_loops"
+"trace_grpo.launchers" = "launchers"
+"trace_grpo.patches" = "patches"
+"trace_grpo.self_supervised" = "self_supervised"
+"trace_grpo.workers" = "workers"
+"trace_grpo.workers.reward_manager" = "workers/reward_manager"
+"trace_grpo.workers.reward_manager.text_feedback" = "workers/reward_manager/text_feedback"
