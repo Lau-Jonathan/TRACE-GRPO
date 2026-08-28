@@ -1,9 +1,12 @@
-# TRACE-GRPO — anonymous submission code release
+# TRACE-GRPO
 
-Anonymized reference implementation for **TRACE-GRPO** (three-level
-credit-assignment GRPO with Critique-Aware Paged Attention, CAPA).
-Companion code for the corresponding paper submission; author identity
-and institutional affiliation are intentionally removed.
+Official reference implementation for **TRACE-GRPO: Teacher-Refined
+Advantage Credit Estimation for Long-Horizon Agentic RL**. TRACE-GRPO
+extends GRPO with hierarchical sample-, turn-, and token-level credit
+signals and introduces Critique-Aware Paged Attention (CAPA) for efficient
+critique-conditioned token redistribution.
+
+Paper: [OpenReview](https://openreview.net/forum?id=JzsDINE84X)
 
 ## Contents
 
@@ -68,7 +71,8 @@ Minimum versions:
 Editable install:
 
 ```bash
-git clone <this repo> trace_grpo && cd trace_grpo
+git clone https://github.com/Lau-Jonathan/TRACE-GRPO.git
+cd TRACE-GRPO
 pip install -e .              # core deps
 pip install -e .[flashattn]   # optional: FA2 for the GPU numerical test
 pip install -e .[sciworld]    # SciWorld environment
@@ -186,9 +190,8 @@ skipped by default. Set `TRACE_GRPO_RUN_LIVE_TESTS=1` and
   or Qwen2.5-1.5B); path is passed via `CKPT_DIR`.
 - **Environments.** ScienceWorld / AlfWorld are third-party packages and
   are installed as dependencies rather than vendored.
-- **Training logs and W&B history.** Available on request through the
-  paper's supplementary materials; kept out of the anonymized code
-  release so that no runtime identifiers leak in.
+- **Training logs and W&B history.** These are excluded because they may
+  contain infrastructure-specific runtime identifiers.
 
 ## Minimal smoke test
 
@@ -207,3 +210,7 @@ pytest -q tests/test_trainer_hook.py tests/test_reward_and_teacher.py \
 ```
 
 Expected output: all of the above pass in under 30 seconds on a laptop CPU.
+
+## License
+
+This project is released under the [Apache License 2.0](LICENSE).

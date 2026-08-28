@@ -20,12 +20,15 @@ set -euo pipefail
 MODE=${MODE:-full}
 CONDA_ENV=${CONDA_ENV:-trace_grpo}
 TEST_GPU=${TEST_GPU:-0}
+PYTHON_BIN=${PYTHON_BIN:-python}
+if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
+  PYTHON_BIN=python3
+fi
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-REPO_ROOT="$(cd "$PROJECT_ROOT/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-export PYTHONPATH="${PYTHONPATH:-}:$REPO_ROOT:$REPO_ROOT/verl"
+export PYTHONPATH="${PYTHONPATH:-}:$REPO_ROOT/..:$REPO_ROOT/verl"
 
 STAMP=$(date +%Y%m%d_%H%M%S)
 LOG_DIR=${LOG_DIR:-$REPO_ROOT/outputs/capa_validation/$STAMP}
@@ -38,7 +41,8 @@ else
 fi
 
 run_python_check() {
-  "${RUNNER[@]}" python - <<'PY'
+  if [ ${#RUNNER[@]} -gt 0 ]; then
+    "${RUNNER[@]}" "$PYTHON_BIN" - <<'PY'
 import importlib
 import torch
 
@@ -58,6 +62,28 @@ def has_mod(name: str) -> bool:
 
 print("flash_attn_installed:", has_mod("flash_attn"))
 PY
+  else
+    "$PYTHON_BIN" - <<'PY'
+import importlib
+import torch
+
+print("torch:", torch.__version__)
+print("cuda_available:", torch.cuda.is_available())
+print("cuda_count:", torch.cuda.device_count() if torch.cuda.is_available() else 0)
+if torch.cuda.is_available():
+    for i in range(torch.cuda.device_count()):
+        print(f"gpu[{i}]={torch.cuda.get_device_name(i)}")
+
+def has_mod(name: str) -> bool:
+    try:
+        importlib.import_module(name)
+        return True
+    except Exception:
+        return False
+
+print("flash_attn_installed:", has_mod("flash_attn"))
+PY
+  fi
 }
 
 run_case() {
@@ -72,11 +98,20 @@ run_case() {
 
   set +e
   if [ "$kind" = "gpu" ]; then
-    CUDA_VISIBLE_DEVICES="$TEST_GPU" "${RUNNER[@]}" python -m pytest -q "$test_expr" \
-      >"$log_file" 2>&1
+    if [ ${#RUNNER[@]} -gt 0 ]; then
+      CUDA_VISIBLE_DEVICES="$TEST_GPU" "${RUNNER[@]}" "$PYTHON_BIN" -m pytest -q "$test_expr" \
+        >"$log_file" 2>&1
+    else
+      CUDA_VISIBLE_DEVICES="$TEST_GPU" "$PYTHON_BIN" -m pytest -q "$test_expr" \
+        >"$log_file" 2>&1
+    fi
   else
-    "${RUNNER[@]}" python -m pytest -q "$test_expr" \
-      >"$log_file" 2>&1
+    if [ ${#RUNNER[@]} -gt 0 ]; then
+      "${RUNNER[@]}" "$PYTHON_BIN" -m pytest -q "$test_expr" \
+        >"$log_file" 2>&1
+    else
+      "$PYTHON_BIN" -m pytest -q "$test_expr" >"$log_file" 2>&1
+    fi
   fi
   local rc=$?
   set -e
@@ -105,17 +140,17 @@ declare -a FAILED_CASES=()
 
 # Always-run core equivalence tests.
 run_case "capa_prefix_kv_equivalence" "cpu" \
-  "trace_grpo/tests/test_prefix_kv_equivalence.py::test_capa_equivalence"
+  "tests/test_prefix_kv_equivalence.py::test_capa_equivalence"
 run_case "capa_prefix_kv_equivalence_gqa" "cpu" \
-  "trace_grpo/tests/test_prefix_kv_equivalence.py::test_capa_equivalence_gqa"
+  "tests/test_prefix_kv_equivalence.py::test_capa_equivalence_gqa"
 run_case "capa_qwen2_packed_vs_reference" "cpu" \
-  "trace_grpo/tests/test_capa_forward.py::test_qwen2_capa_forward_uses_single_packed_path_and_matches_reference"
+  "tests/test_capa_forward.py::test_qwen2_capa_forward_uses_single_packed_path_and_matches_reference"
 
 if [ "$MODE" = "full" ]; then
   run_case "capa_fa2_bf16_drift" "gpu" \
-    "trace_grpo/tests/test_capa_forward.py::test_qwen2_capa_forward_fa2_bf16_matches_reference_with_drift_bound"
+    "tests/test_capa_forward.py::test_qwen2_capa_forward_fa2_bf16_matches_reference_with_drift_bound"
   run_case "actor_l3_rpc_smoke" "gpu" \
-    "trace_grpo/tests/test_actor_l3_rpc_smoke.py::test_fsdp_worker_l3_rpc_matches_reference_provider"
+    "tests/test_actor_l3_rpc_smoke.py::test_fsdp_worker_l3_rpc_matches_reference_provider"
 elif [ "$MODE" != "quick" ]; then
   echo "Unsupported MODE=$MODE (use quick or full)" >&2
   exit 2

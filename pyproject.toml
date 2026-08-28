@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "trace-grpo"
 version = "0.1.0"
-description = "Trace-Aware Credit-assignment Grpo — three-level advantage modulation + Critique-Aware Paged Attention on top of verl."
+description = "Teacher-refined hierarchical advantage credit estimation and Critique-Aware Paged Attention for GRPO."
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "Anonymous Authors" }]
-license = { text = "Apache-2.0" }
+authors = [{ name = "TRACE-GRPO Authors" }]
+license = { file = "LICENSE" }
 dependencies = [
   "torch>=2.5",
   "numpy",
@@ -20,6 +20,10 @@ dependencies = [
   "httpx",
   "ray",
 ]
+
+[project.urls]
+Paper = "https://openreview.net/forum?id=JzsDINE84X"
+Repository = "https://github.com/Lau-Jonathan/TRACE-GRPO"
 
 [project.optional-dependencies]
 sciworld = ["scienceworld>=1.2.3"]

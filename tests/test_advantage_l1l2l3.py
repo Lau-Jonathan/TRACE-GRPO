@@ -244,6 +244,11 @@ def test_l3_token_redistribution_emnlp_example():
         text_feedback_lambda=0.2,
         trace_l3_alpha=0.3,
         trace_l3_kappa=1.0,
+        # The worked paper example uses the direct alpha_3 * kappa bound
+        # (symmetric [0.7, 1.3]) rather than the launcher's conservative
+        # asymmetric production caps.
+        trace_l3_suppress_cap=0.3,
+        trace_l3_boost_cap=0.3,
     )
 
     # emnlp §6 prints these to 4 decimals; allow 1e-3 absolute tolerance to
